@@ -55,7 +55,7 @@ def process(time_step):
                 arr_mouth = arr_mouth.reshape(-1, 40, 2)
                 arr_mouth = np.expand_dims(arr_mouth, axis= 0)
                 res = model.predict(arr_mouth, verbose = False)
-                print(res)
+                # print(res)
             except:
                 print('Lỗi khi dự đoán', arr_mouth)
                 pass
@@ -68,14 +68,17 @@ def process(time_step):
         cv2.putText(frame_out, f"FPS: {fps:.2f}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         # Hiển thị kết quả
+        color = None
         if(res != [['none']]):
             res = round(res[0][0], 2)
             if res < 0.5:
                 res = str(res) + " " + "khong tuc"
+                color = (0, 255, 0)
             else:
                 res = str(res) + " " + "tuc"
+                color = (0, 0, 255)
         cv2.putText(frame_out, f"res: {res}", (10, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
         # Hiển thị màn hình
         cv2.imshow("out_put", frame_out)
