@@ -4,11 +4,16 @@ import time
 from tensorflow.keras.models import load_model # type: ignore
 import numpy as np
 from detect_mouth import TOOL
+from tensorflow.keras.utils import custom_object_scope
+
+# Import lớp tùy chỉnh của bạn
+from modul import TemporalBlock, TemporalConvNet  # Đảm bảo thay thế 'your_module' bằng module chứa lớp TemporalBlock
 
 def process(time_step):
     # Load các công cụ cần thiết
     OJ = TOOL()
-    model_rnn= load_model(r'model_lstm.h5')
+    
+    model = load_model("tcn.keras", custom_objects={"TemporalBlock": TemporalBlock, "TemporalConvNet": TemporalConvNet})
 
     # Mở webcam
     cam = cv2.VideoCapture(0)
@@ -32,9 +37,10 @@ def process(time_step):
 
         # set ảnh đầu vào cho TOOL
         OJ.set_input_image(frame)
+        
         # Cắt bớt phần đầu list khi độ dài quá time_step
         while len(list_mouth_origin) >= time_step:
-            list_mouth_origin = list_mouth_origin[1:]       
+            list_mouth_origin = list_mouth_origin[1:]
         # Lấy các điểm của môi
         mouth = OJ.point_output()
         # Thêm list điểm môi mới vào cuối list chứa các điểm môi
@@ -46,11 +52,12 @@ def process(time_step):
             # bắt lỗi khi dự đoán do dữ liệu đầu vào không hợp lệ (không đủ số lượng hoặc không đúng kích thước)
             try:
                 arr_mouth = np.array(list_mouth_origin)
+                arr_mouth = arr_mouth.reshape(-1, 40, 2)
                 arr_mouth = np.expand_dims(arr_mouth, axis= 0)
-                res = model_rnn.predict(arr_mouth, verbose = False)
+                res = model.predict(arr_mouth, verbose = False)
                 print(res)
             except:
-                print('Lỗi khi dự đoán')
+                print('Lỗi khi dự đoán', arr_mouth)
                 pass
 
         # Ảnh đầu ra với các điểm đã vẽ
@@ -61,7 +68,13 @@ def process(time_step):
         cv2.putText(frame_out, f"FPS: {fps:.2f}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         # Hiển thị kết quả
-        cv2.putText(frame_out, f"res: {res[0][0]}", (10, 60),
+        if(res != [['none']]):
+            res = round(res[0][0], 2)
+            if res < 0.5:
+                res = str(res) + " " + "khong tuc"
+            else:
+                res = str(res) + " " + "tuc"
+        cv2.putText(frame_out, f"res: {res}", (10, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Hiển thị màn hình
@@ -76,5 +89,4 @@ def process(time_step):
 if __name__ == "__main__":
     # Chạy chương trình
     # NHớ thay đổi tham số time_step để thay đổi số lượng điểm môi cần dự đoán
-    process(20)
-    
+    process(32)
