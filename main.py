@@ -57,7 +57,7 @@ def process(time_step):
                 res = model.predict(arr_mouth, verbose = False)
                 # print(res)
             except:
-                print('Lỗi khi dự đoán', arr_mouth)
+                # print('Lỗi khi dự đoán', arr_mouth)
                 pass
 
         # Ảnh đầu ra với các điểm đã vẽ
