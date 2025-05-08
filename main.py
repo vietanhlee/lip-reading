@@ -13,11 +13,11 @@ def process(time_step):
     # Load các công cụ cần thiết
     OJ = TOOL()
     
+    # Load model tcn (nhớ đăng kí custom layer)
     model = load_model("tcn.keras", custom_objects={"TemporalBlock": TemporalBlock, "TemporalConvNet": TemporalConvNet})
 
     # Mở webcam
     cam = cv2.VideoCapture(0)
-
     if not cam.isOpened():
         print("Không thể mở camera")
         exit()
@@ -46,19 +46,23 @@ def process(time_step):
         # Thêm list điểm môi mới vào cuối list chứa các điểm môi
         list_mouth_origin.append(mouth)
 
-        # Dự đoán
-        res = [['none']]
+        res = [['none']] # Biến flag 
+        
+        # Chỉ khi số lượng frame đủ yêu cầu thì mới predict
         if(len(list_mouth_origin) == time_step):
-            # bắt lỗi khi dự đoán do dữ liệu đầu vào không hợp lệ (không đủ số lượng hoặc không đúng kích thước)
+            # Bắt lỗi khi dự đoán do dữ liệu đầu vào không hợp lệ (không đủ số lượng hoặc không đúng kích thước)
             try:
+                # Biến đổi dữ liệu đầu vào 
                 arr_mouth = np.array(list_mouth_origin)
                 arr_mouth = arr_mouth.reshape(-1, 40, 2)
                 arr_mouth = np.expand_dims(arr_mouth, axis= 0)
+                
+                # Tiến hành dự đoán
                 res = model.predict(arr_mouth, verbose = False)
                 # print(res)
             except:
-                # print('Lỗi khi dự đoán', arr_mouth)
-                pass
+                print('Lỗi khi dự đoán')
+                # pass
 
         # Ảnh đầu ra với các điểm đã vẽ
         frame_out = OJ.pic_draw_point()
@@ -67,7 +71,8 @@ def process(time_step):
         # Hiển thị FPS
         cv2.putText(frame_out, f"FPS: {fps:.2f}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        # Hiển thị kết quả
+        
+        # Hiển thị kết quả predict trên góc trái màn 
         color = None
         if(res != [['none']]):
             res = round(res[0][0], 2)
