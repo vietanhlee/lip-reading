@@ -64,7 +64,6 @@ TCN là lựa chọn hiệu quả, hiện đại cho bài toán chuỗi thời g
                         |__.wav
   ```
 
-
 - File `collecting.py` là file lấy data (dùng để chạy lấy DATA)
 
 - File `main.py` là file để chạy (khi có model)
@@ -72,14 +71,35 @@ TCN là lựa chọn hiệu quả, hiện đại cho bài toán chuỗi thời g
 - File `tool.py` chỉ là một file công cụ chứa 2 hàm là lấy ra dữ liệu point (gồm 40 giá trị và cứ 2 giá trị chính là thông tin của một điểm point miệng)
 
 - File `TCN.ipynb` dùng để training data dựa trên model `TCN` 
+
 - File `LSTM.ipynb` dùng để training data dựa trên model `LSTM`
-> Có thể thay đổi các tham số theo ý thích (time_step nên để từ 20 đến 40 thôi cao hơn hay ít hơn thì không nên do không quá nhạy, để mặc định là 32). 
+
+> Data qua xử lý [tải ở đây](https://drive.google.com/drive/folders/1lZtWnx8I1sMJzvITtP0goEwO-RInpCoG?usp=drive_link) 
 
 # Traing data
 - Đầu tiên cần có DATA (tức thư mục DATA cần phải có, chưa có thì chạy file `collecting.py` để lấy)
 
-- Nếu thiết bị đủ mạnh thì có thể training file `TCN.ipynb` trên local. luôn. Tốt nhất là chạy phần preprocessing trong file đó để xuất 2 tệp `X.pkl` và `Y.pkl` rồi import vào [Google Colab](https://colab.research.google.com/drive/10MGuuBpTkuUrABmeYWCbGe5di9wKN2jj?usp=sharing) để training và tải tệp `tcn.keras` về máy và chạy thử file `main.py`
+- Nếu thiết bị đủ mạnh thì có thể training file `TCN.ipynb` trên local luôn. Tốt nhất chạy trên [Google Colab](https://colab.research.google.com/drive/10MGuuBpTkuUrABmeYWCbGe5di9wKN2jj?usp=sharing) để training và tải tệp `tcn.keras` về máy và chạy thử file `main.py`
 
-> Tương tự với file `LSTM`
+> Tải luôn model [tại đây](https://drive.google.com/file/d/1rsibV_h-EPq5GQKT4KA4CZ7-OFtghoNq/view?usp=sharing)
 
-# So sánh với LSTM
+# So sánh kết quả training giữa LSTM với TCN
+## Khi sử dụng LSTM
+![](https://raw.githubusercontent.com/vietanhlee/lip-reading/refs/heads/main/LSTM.png)
+
+- Từ đồ thị ta thấy model overfiting mặc dù training với 100 epochs
+
+> Tải model [tại đây](https://drive.google.com/file/d/1hWFf94gVuSo-RHy0kvbP6hKhTGqYi0ok/view?usp=sharing)
+
+## Khi sử dụng TCN
+![](https://raw.githubusercontent.com/vietanhlee/lip-reading/refs/heads/main/TCN.png)
+
+- Biểu đồ này đã hợp cho việc predict realtime
+
+> Tải model [tại đây](https://drive.google.com/file/d/1rsibV_h-EPq5GQKT4KA4CZ7-OFtghoNq/view?usp=sharing)
+
+# Tham khảo
+
+[Paper TCN](https://arxiv.org/pdf/1803.01271)
+
+[Code TCN theo pytorch](https://github.com/locuslab/TCN)
