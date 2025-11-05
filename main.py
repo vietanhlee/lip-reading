@@ -120,7 +120,7 @@ def process(time_step):
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         # Hiển thị nhãn dự đoán (tiếng Việt có dấu) bằng Pillow
         if last_label:
-            frame_out = draw_vn_text(frame_out, f"Dự đoán: {last_label}", (10, 70),
+            frame_out = draw_vn_text(frame_out, f"Dự đoán: {last_label[1:]}", (10, 70),
                                       font_size=28, color=(0, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
         
        
@@ -136,4 +136,4 @@ def process(time_step):
 if __name__ == "__main__":
     # Chạy chương trình
     # NHớ thay đổi tham số time_step để thay đổi số lượng điểm môi cần dự đoán
-    process(32)
+    process(50)

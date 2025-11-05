@@ -55,7 +55,7 @@ class TCN_bulid(keras.Layer):
     
 def build(num_of_classes):
     model = Sequential([
-        layers.Input(shape=(32, 80)), 
+        layers.Input(shape=(50, 80)), 
         TCN_bulid(list_filters= [64, 128, 256]),
         layers.Flatten(),
         layers.Dense(num_of_classes, activation='softmax')
