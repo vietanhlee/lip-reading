@@ -3,6 +3,11 @@ import time
 import numpy as np
 from detect_mouth import TOOL
 from build_model import build
+import pickle
+from PIL import Image, ImageDraw, ImageFont
+import os
+
+categories = pickle.load(open('categories.pkl', 'rb'))
 
 def process(time_step):
     # Load các công cụ cần thiết
@@ -10,7 +15,7 @@ def process(time_step):
     
     # Load model tcn (nhớ đăng kí custom layer)
     model = build(189)
-    model.load_weights('tcn.keras')  
+    model.load_weights('tcn.weights.h5')  
     # Mở webcam
     cam = cv2.VideoCapture(0)
     if not cam.isOpened():
@@ -19,6 +24,46 @@ def process(time_step):
 
     # List chứa các điểm của môi trong 1 khoảng thời gian
     list_mouth_origin= []
+    # Nhãn dự đoán gần nhất để hiển thị lên màn hình
+    last_label = ""
+
+    # Hàm vẽ chữ tiếng Việt bằng Pillow (hỗ trợ Unicode)
+    def draw_vn_text(img_bgr, text, org=(10, 70), font_size=28, color=(255, 255, 0), stroke_width=2, stroke_fill=(0, 0, 0)):
+        # Tìm font hỗ trợ tiếng Việt (ưu tiên Arial trên Windows)
+        font_paths = [
+            r"C:\\Windows\\Fonts\\arial.ttf",
+            r"C:\\Windows\\Fonts\\tahoma.ttf",
+            r"C:\\Windows\\Fonts\\segoeui.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        ]
+        font_path = None
+        for p in font_paths:
+            if os.path.exists(p):
+                font_path = p
+                break
+
+        try:
+            font = ImageFont.truetype(font_path, font_size) if font_path else ImageFont.load_default()
+        except Exception:
+            font = ImageFont.load_default()
+
+        # Chuyển sang RGB để dùng Pillow
+        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        pil_img = Image.fromarray(img_rgb)
+        draw = ImageDraw.Draw(pil_img)
+
+        # Vẽ chữ với viền (stroke) để dễ đọc trên nền phức tạp
+        x, y = org
+        try:
+            draw.text((x, y), text, font=font, fill=tuple(int(c) for c in color),
+                      stroke_width=stroke_width, stroke_fill=tuple(int(c) for c in stroke_fill))
+        except TypeError:
+            # Fallback cho Pillow cũ không hỗ trợ stroke
+            draw.text((x, y), text, font=font, fill=tuple(int(c) for c in color))
+
+        # Chuyển ngược về BGR cho OpenCV
+        return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+
 
     while True:
         start_time = time.time()  # Lấy thời gian bắt đầu frame
@@ -54,7 +99,14 @@ def process(time_step):
                 
                 # Tiến hành dự đoán
                 res = model.predict(arr_mouth, verbose = False)
-                print(res)
+                # print(res)
+                res = categories[np.argmax(res[0], axis= 0)]
+                print("Dự đoán: ", res)
+                # Cập nhật nhãn để hiển thị lên màn hình
+                last_label = str(res)
+                if last_label[0] == '1':
+                    last_label = 'Tục'
+                
             except Exception as e:
                 print('Lỗi khi dự đoán', e)
                 # pass
@@ -63,23 +115,15 @@ def process(time_step):
         frame_out = OJ.pic_draw_point()
         # Tính FPS
         fps = 1 / (time.time() - start_time)
-        # Hiển thị FPS
+        # Hiển thị FPS (ASCII - không dấu vẫn dùng OpenCV)
         cv2.putText(frame_out, f"FPS: {fps:.2f}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        # Hiển thị nhãn dự đoán (tiếng Việt có dấu) bằng Pillow
+        if last_label:
+            frame_out = draw_vn_text(frame_out, f"Dự đoán: {last_label}", (10, 70),
+                                      font_size=28, color=(0, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0))
         
-        # # Hiển thị kết quả predict trên góc trái màn 
-        # color = None
-        # if(res != [['none']]):
-        #     res = round(res[0][0], 2)
-        #     if res < 0.5:
-        #         res = str(res) + " " + "khong tuc"
-        #         color = (0, 255, 0)
-        #     else:
-        #         res = str(res) + " " + "tuc"
-        #         color = (0, 0, 255)
-        # cv2.putText(frame_out, f"res: {res}", (10, 60),
-        #             cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-
+       
         # Hiển thị màn hình
         cv2.imshow("out_put", frame_out)
 
